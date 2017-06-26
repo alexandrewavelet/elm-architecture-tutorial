@@ -22,12 +22,13 @@ main =
 type alias Model =
   { topic : String
   , gifUrl : String
+  , error : String
   }
 
 
 init : String -> (Model, Cmd Msg)
 init topic =
-  ( Model topic "waiting.gif"
+  ( Model topic "waiting.gif" ""
   , getRandomGif topic
   )
 
@@ -38,6 +39,7 @@ init topic =
 
 type Msg
   = MorePlease
+  | Topic (String)
   | NewGif (Result Http.Error String)
 
 
@@ -47,11 +49,14 @@ update msg model =
     MorePlease ->
       (model, getRandomGif model.topic)
 
-    NewGif (Ok newUrl) ->
-      (Model model.topic newUrl, Cmd.none)
+    Topic newTopic ->
+      ({model | topic = newTopic}, Cmd.none)
 
-    NewGif (Err _) ->
-      (model, Cmd.none)
+    NewGif (Ok newUrl) ->
+      ({model | gifUrl = newUrl, error = ""}, Cmd.none)
+
+    NewGif (Err error) ->
+      ({model | gifUrl = "", error = toString error}, Cmd.none)
 
 
 
@@ -62,9 +67,18 @@ view : Model -> Html Msg
 view model =
   div []
     [ h2 [] [text model.topic]
+    , input [placeholder model.topic, onInput Topic] []
+    , select [ onInput Topic ]
+      [ option [] [ text "Pokemon" ]
+      , option [] [ text "wasted" ]
+      , option [] [ text "cats" ]
+      , option [] [ text "puppy" ]
+      , option [] [ text "meme" ]
+      ]
     , button [ onClick MorePlease ] [ text "More Please!" ]
     , br [] []
     , img [src model.gifUrl] []
+    , div [] [text model.error]
     ]
 
 
