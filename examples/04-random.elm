@@ -1,4 +1,5 @@
 import Html exposing (..)
+import Html.Attributes exposing (src, alt)
 import Html.Events exposing (..)
 import Random
 
@@ -18,13 +19,14 @@ main =
 
 
 type alias Model =
-  { dieFace : Int
+  { dieFace1 : Int
+  , dieFace2 : Int
   }
 
 
 init : (Model, Cmd Msg)
 init =
-  (Model 1, Cmd.none)
+  (Model 1 1, Cmd.none)
 
 
 
@@ -33,19 +35,21 @@ init =
 
 type Msg
   = Roll
-  | NewFace Int
+  | NewFace1 Int
+  | NewFace2 Int
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     Roll ->
-      (model, Random.generate NewFace (Random.int 1 6))
+      (model, Random.generate NewFace1 (Random.int 1 6))
 
-    NewFace newFace ->
-      (Model newFace, Cmd.none)
+    NewFace1 newFace ->
+      ({model | dieFace1 = newFace}, Random.generate NewFace2 (Random.int 1 6))
 
-
+    NewFace2 newFace ->
+      ({model | dieFace2 = newFace}, Cmd.none)
 
 -- SUBSCRIPTIONS
 
@@ -62,6 +66,29 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
   div []
-    [ h1 [] [ text (toString model.dieFace) ]
+    [ div [] [ dieFaceImage model.dieFace1 ]
+    , div [] [ dieFaceImage model.dieFace2 ]
     , button [ onClick Roll ] [ text "Roll" ]
     ]
+
+dieFaceImage : number -> Html Msg
+dieFaceImage dieFace =
+  let
+    (fileName) =
+      case dieFace of
+        1 ->
+          "1.png"
+        2 ->
+          "2.png"
+        3 ->
+          "3.png"
+        4 ->
+          "4.png"
+        5 ->
+          "5.png"
+        6 ->
+          "6.png"
+        _ ->
+          Debug.crash "This shouldn't happen"
+  in
+    img [ src ("images/" ++ fileName), alt (toString dieFace ++ " face")] []
